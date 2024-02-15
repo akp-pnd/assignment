@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                
+                git 'https://github.com/akp-pnd/assignment/tree/demo'
+                
+                
+                script {
+                    docker.build('welcome')
+                }
+            }
+        }
+        
+        stage('Push to Registry') {
+            steps {
+                
+                script {
+                    docker.withRegistry('https://your-container-registry.azurecr.io', 'your-registry-credentials') {
+                        docker.image('welcome').push('latest')
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to Kubernetes') {
+            steps {
+               
+                script {
+                    sh 'kubectl apply -f deployment.yaml'
+                    sh 'kubectl apply -f welcome-svc.yaml'
+                    
+                }
+            }
+        }
+    }
+}
